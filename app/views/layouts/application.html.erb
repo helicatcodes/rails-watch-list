@@ -21,6 +21,15 @@
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
+
+    <%# Google Fonts — "The Girl Next Door" (handwritten, boho style) %>
+    <%# rel="preconnect" tells the browser to open a connection to the font %>
+    <%# server early, before it knows it needs the font — speeds up load time. %>
+    <%# crossorigin is required on the gstatic link because font files are served %>
+    <%# from a different domain (cross-origin request). %>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=The+Girl+Next+Door&display=swap" rel="stylesheet">
   </head>
 
   <body>
