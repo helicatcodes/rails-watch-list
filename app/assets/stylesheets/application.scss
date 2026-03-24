@@ -10,3 +10,22 @@
 // Your CSS partials
 @import "components/index";
 @import "pages/index";
+
+.form-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #141414, #2b2b2b);
+  padding: 40px 20px;
+}
+
+.form-card {
+  background: white;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 100%;
+}
+
+.movie-icon {
+  font-size: 40px;
+  color: #ff4757;
+  margin-bottom: 10px;
+}

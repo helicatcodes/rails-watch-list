@@ -1,0 +1,60 @@
+<%# ===== INDEX PAGE — shows all lists ===== %>
+<%# @lists is set in ListsController#index by List.all %>
+
+<%# --- Full-screen wrapper ---
+    asset_path() generates the correct fingerprinted URL for the image in
+    app/assets/images/. Done inline (not in SCSS) because SCSS can't call
+    Rails helpers — they only exist in views and controllers. %>
+<div class="lists-page"
+     style="background-image: url('<%= asset_path('Background Image.png') %>');">
+
+  <%# --- Header — sits in the upper area of the image, above the couch ---
+      Styled in .lists-page__header in _index.scss. %>
+  <div class="lists-page__header">
+    <h1>In the mood for a movie?</h1>
+  </div>
+
+  <%# --- Create button — sits as its own flex child between header and cards.
+      With justify-content: space-between and 3 direct children (.lists-page__header,
+      this div, and .lists-page__bottom), the browser automatically places them:
+      header at top, button centred in the middle gap, cards at the bottom. %>
+  <div class="text-center lists-page__cta">
+    <%# link_to renders an <a> tag. .btn + .btn-create-list gives it
+        button styling defined in _index.scss. %>
+    <%= link_to "+ New list", new_list_path, class: "btn btn-create-list" %>
+  </div>
+
+  <%# --- Bottom section — cards only, at the bottom of the page --- %>
+  <div class="lists-page__bottom">
+
+    <%# Card grid — see .lists-grid in _index.scss for the layout explanation. %>
+    <div class="lists-grid">
+
+      <%# @lists.each loops over every List record from the database %>
+      <% @lists.each do |list| %>
+        <%# Each link_to is a direct grid child — the grid places it automatically %>
+        <%= link_to list_path(list), class: "text-decoration-none" do %>
+          <%# The card itself: title fills the centre, count stays at the bottom %>
+          <div class="list-card">
+            <h6 class="list-card__title"><%= list.name %></h6>
+            <%# list.movies.count runs a SQL COUNT — efficient, doesn't load all
+                records into memory. pluralize() handles "1 movie" vs "2 movies". %>
+            <small class="list-card__count">
+              <%= list.movies.count %> <%= "movie".pluralize(list.movies.count) %>
+            </small>
+          </div>
+        <% end %>
+      <% end %>
+
+    </div>
+
+    <%# Empty state — only shown when no lists exist yet %>
+    <% if @lists.empty? %>
+      <div class="text-center py-3" style="color: rgba(245,236,215,0.6);">
+        <p class="small">No lists yet.</p>
+      </div>
+    <% end %>
+
+  </div><%# end .lists-page__bottom %>
+
+</div><%# end .lists-page %>
