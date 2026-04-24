@@ -2,97 +2,77 @@
 <%# @list is set by the before_action :set_list in the controller.           %>
 <%# @list.movies works because List has_many :movies, through: :bookmarks.   %>
 
-<%# --- Cover banner --- %>
-<div class="cover mb-4 d-flex align-items-center justify-content-center">
-  <div class="text-center">
-    <%# @list.name outputs the name column of this specific list record %>
-    <h1><%= @list.name %></h1>
-    <p class="lead"><%= @list.movies.count %> <%= "movie".pluralize(@list.movies.count) %></p>
-  </div>
-</div>
+<div class="show-page">
 
-<div class="container py-4">
+  <%# --- Cover banner: left = title/count/back, right = add movie form --- %>
+  <div class="cover mb-4">
+    <div class="container h-100 d-flex align-items-center justify-content-between gap-4">
 
-  <%# --- Back link + page header --- %>
-  <div class="d-flex align-items-center justify-content-between mb-4">
-    <%# link_to generates an <a> tag. lists_path is the named route helper for GET /lists %>
-    <%= link_to "← Back to all lists", lists_path, class: "btn btn-outline-secondary btn-sm" %>
-    <h4 class="mb-0">Movies in this list</h4>
-  </div>
+      <%# Left — list title, movie count, back button %>
+      <div class="show-cover__left">
+        <h1 class="show-cover__title"><%= @list.name %></h1>
+        <p class="lead mb-3"><%= @list.movies.count %> <%= "movie".pluralize(@list.movies.count) %></p>
+        <%= link_to "← Back to all lists", lists_path, class: "btn btn-create-list btn-sm" %>
+      </div>
 
-  <%# --- Movie grid --- %>
-  <%# @list.movies follows the has_many :through association to fetch all movies %>
-  <%# that are linked to this list via the bookmarks join table.                  %>
-  <% if @list.movies.any? %>
-    <div class="row">
-      <% @list.movies.each do |movie| %>
-        <%# Bootstrap grid: full width on mobile, half on small, a third on medium+ %>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-          <div class="card h-100 shadow-sm">
-
-            <%# movie.poster_url is stored in the database from the seed file (TMDB API) %>
-            <% if movie.poster_url.present? %>
-              <img src="<%= movie.poster_url %>" class="card-img-top"
-                   alt="<%= movie.title %> poster" style="object-fit: cover; height: 300px;">
-            <% else %>
-              <%# Fallback if no poster image is available %>
-              <div class="bg-secondary d-flex align-items-center justify-content-center"
-                   style="height: 300px;">
-                <i class="fa-solid fa-film text-white" style="font-size: 3rem;"></i>
-              </div>
-            <% end %>
-
-            <div class="card-body d-flex flex-column">
-              <h6 class="card-title mb-1"><%= movie.title %></h6>
-              <%# The rating badge uses Bootstrap contextual classes %>
-              <span class="badge bg-warning text-dark mb-2">
-                <i class="fa-solid fa-star"></i> <%= movie.rating.round(1) %>
-              </span>
-              <%# truncate() is a Rails helper that shortens long text.                   %>
-              <%# length: 80 cuts at 80 characters; omission: "..." adds the ellipsis    %>
-              <p class="card-text text-muted small flex-grow-1">
-                <%= truncate(movie.overview, length: 80) %>
-              </p>
-            </div>
-
+      <%# Right — add movie form %>
+      <div class="add-movie-panel">
+        <%= simple_form_for @bookmark, url: bookmarks_path do |f| %>
+          <%= f.input :movie_id, label: false, as: :select,
+                      collection: Movie.order(:title).map { |m| [m.title, m.id] },
+                      include_blank: "Pick a movie" %>
+          <%= f.input :comment, label: false,
+                      placeholder: "Add a comment",
+                      required: false %>
+          <%= f.hidden_field :list_id, value: @list.id %>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-create-list">Add to List</button>
           </div>
-        </div>
-      <% end %>
-    </div>
+        <% end %>
+      </div>
 
-  <% else %>
-    <%# Empty state — shown when no movies have been bookmarked to this list yet %>
-    <div class="text-center py-5 text-muted">
-      <i class="fa-solid fa-film mb-3" style="font-size: 3rem;"></i>
-      <p>No movies in this list yet. Add some below!</p>
-    </div>
-  <% end %>
-
-  <%# ===== ADD A MOVIE SECTION (placeholder for the bookmark form) ===== %>
-  <%# This section will be wired up when we build the BookmarksController.  %>
-  <hr class="my-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <h5 class="mb-3">Add a movie to this list</h5>
-      <%# simple_form_for builds a form tied to the @bookmark object.           %>
-      <%# url: points to the bookmarks create route (to be added to routes.rb)  %>
-      <%= simple_form_for @bookmark, url: "#" do |f| %>
-        <%# collection_select renders a <select> dropdown.                              %>
-        <%# Movie.all is the list of options; :id is the value; :title is the label.   %>
-        <%= f.input :movie_id, label: "Movie", as: :select,
-                    collection: Movie.order(:title).map { |m| [m.title, m.id] },
-                    include_blank: "-- Pick a movie --" %>
-        <%= f.input :comment, label: "Comment",
-                    placeholder: "e.g. A classic everyone should see",
-                    required: false %>
-        <%# f.hidden_field embeds the list id so the controller knows which list        %>
-        <%# this bookmark belongs to — it's invisible to the user but sent with the form %>
-        <%= f.hidden_field :list_id, value: @list.id %>
-        <div class="d-grid">
-          <%= f.submit "Add to List", class: "btn btn-primary" %>
-        </div>
-      <% end %>
     </div>
   </div>
 
-</div>
+  <%# --- Full-width movie grid --- %>
+  <div class="container py-4">
+    <% if @list.movies.any? %>
+      <div class="row">
+        <% @list.movies.each do |movie| %>
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div class="card movie-card h-100">
+
+              <% if movie.poster_url.present? %>
+                <img src="<%= movie.poster_url %>" class="card-img-top"
+                     alt="<%= movie.title %> poster" style="object-fit: cover; height: 260px;">
+              <% else %>
+                <div class="d-flex align-items-center justify-content-center"
+                     style="height: 260px; background-color: #1a0f08;">
+                  <i class="fa-solid fa-film" style="font-size: 3rem; color: rgba(245,236,215,0.3);"></i>
+                </div>
+              <% end %>
+
+              <div class="card-body d-flex flex-column">
+                <h6 class="card-title mb-1"><%= movie.title %></h6>
+                <span class="badge mb-2">
+                  <i class="fa-solid fa-star"></i> <%= movie.rating.round(1) %>
+                </span>
+                <p class="card-text small flex-grow-1">
+                  <%= truncate(movie.overview, length: 80) %>
+                </p>
+              </div>
+
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+    <% else %>
+      <div class="text-center py-5" style="color: rgba(245,236,215,0.5);">
+        <i class="fa-solid fa-film mb-3" style="font-size: 3rem;"></i>
+        <p>No movies in this list yet.</p>
+      </div>
+    <% end %>
+  </div><%# end .container %>
+
+</div><%# end .show-page %>

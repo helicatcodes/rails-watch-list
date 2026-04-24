@@ -1,5 +1,5 @@
 // Import page-specific CSS files here.
-@import "home"; // keeps the .cover styles used by the show page
+@import "show";
 
 
 // ---- Full-screen background wrapper (index page only) -----------------------
@@ -29,9 +29,8 @@
 // In a flex space-between layout, margin on a middle child shifts it relative
 // to its natural midpoint position. Increase this value to move it lower.
 .lists-page__cta {
-  margin-top: 35vh;
+  margin-top: 14vh;
   margin-right: 65px; /* nudge left by adding space on the right */
-
 }
 
 
@@ -42,7 +41,7 @@
 // style scoped so it doesn't affect h1 tags anywhere else on the site.
 .lists-page__header {
   text-align: center;
-  padding: 10rem 2rem 0;
+  padding: 4rem 2rem 0;
 
   h1 {
     // $headers-font = "Nunito" — the same font used on list card titles (h6).
@@ -74,13 +73,14 @@
 //   auto-fill  — create as many columns as will fit in the available width
 //   minmax(180px, 1fr) — each column is at least 180px wide, but expands
 //                        equally (1fr each) to fill any leftover space
-// Result: cards always stretch edge-to-edge with no gap on the right, and
-// naturally wrap onto a new row when there are more cards than fit in one row.
+// Result: cards wrap onto new rows automatically, and a partial row centers
+// horizontally rather than left-aligning.
 .lists-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.75rem;
-  padding: 0 1.5rem; // breathing room against the left and right screen edges
+  padding-left: 13rem;
+  padding-right: 20rem;
 }
 
 
@@ -93,16 +93,18 @@
   background-color: #2C1A0E; // dark brown — matches the couch in the background image
   border-radius: 8px;
   padding: 0.75rem;
-  height: 120px;             // taller than before to give the larger title room
-  display: flex;             // flex column: title grows to fill, count stays at bottom
+  height: 70px;
+  display: flex;
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
   transition: transform 0.2s ease;
+  opacity: 0.7;
 }
 
 .list-card:hover {
   transform: scale(1.04);
+  opacity: 1;
 }
 
 .list-card__title {
@@ -136,18 +138,20 @@
 // drawing the eye away from the background image or the list cards.
 // box-shadow format: offset-x | offset-y | blur-radius | colour
 .btn-create-list {
-  background-color: #7A4A4A;  // dark dusty pink
+  background-color: #7A4A4A;
   color: #F5ECD7;
   border: none;
-  padding: 0.55rem 1.4rem;    // slightly larger than before
+  padding: 0.50rem 1.4rem;
   font-size: 0.9rem;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
   transition: background-color 0.2s ease, box-shadow 0.2s ease;
+  opacity: 0.6;
 }
 
 .btn-create-list:hover {
   background-color: #8C5555;
   color: #F5ECD7;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+  opacity: 1;
 }
