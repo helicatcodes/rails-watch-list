@@ -2,25 +2,32 @@
 <%# @list is set by the before_action :set_list in the controller.           %>
 <%# @list.movies works because List has_many :movies, through: :bookmarks.   %>
 
-<div class="show-page">
+<div class="show-page" data-controller="movie-modal">
 
   <%# --- Cover banner: left = title/count/back, right = add movie form --- %>
-  <div class="cover mb-4">
+  <div class="cover mb-2">
     <div class="container h-100 d-flex align-items-center justify-content-between gap-4">
 
       <%# Left — list title, movie count, back button %>
       <div class="show-cover__left">
         <h1 class="show-cover__title"><%= @list.name %></h1>
-        <p class="lead mb-3"><%= @list.movies.count %> <%= "movie".pluralize(@list.movies.count) %></p>
+        <p class="lead mb-1"><%= @list.movies.count %> <%= "movie".pluralize(@list.movies.count) %></p>
         <%= link_to "← Back to all lists", lists_path, class: "btn btn-create-list btn-sm" %>
       </div>
 
       <%# Right — add movie form %>
       <div class="add-movie-panel">
         <%= simple_form_for @bookmark, url: bookmarks_path do |f| %>
-          <%= f.input :movie_id, label: false, as: :select,
-                      collection: Movie.order(:title).map { |m| [m.title, m.id] },
-                      include_blank: "Pick a movie" %>
+          <div data-controller="movie-search" class="movie-search-wrap mb-2">
+            <input type="text"
+                   data-movie-search-target="input"
+                   data-action="input->movie-search#search"
+                   placeholder="Search for a movie"
+                   class="movie-search-input"
+                   autocomplete="off">
+            <div data-movie-search-target="results" class="search-results-dropdown"></div>
+            <%= f.hidden_field :movie_id, data: { "movie-search-target": "movieId" } %>
+          </div>
           <%= f.input :comment, label: false,
                       placeholder: "Add a comment",
                       required: false %>
@@ -35,31 +42,50 @@
   </div>
 
   <%# --- Full-width movie grid --- %>
-  <div class="container py-4">
-    <% if @list.movies.any? %>
+  <div class="container py-2">
+    <% if @list.bookmarks.any? %>
       <div class="row">
-        <% @list.movies.each do |movie| %>
-          <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
-            <div class="card movie-card h-100">
+        <% @list.bookmarks.includes(:movie).order(created_at: :desc).each do |bookmark| %>
+          <% movie = bookmark.movie %>
+          <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <div class="card movie-card h-100"
+                 data-action="click->movie-modal#open"
+                 data-movie-title="<%= movie.title %>"
+                 data-movie-rating="<%= movie.rating.round(1) %>"
+                 data-movie-overview="<%= movie.overview %>"
+                 data-movie-poster="<%= movie.poster_url %>"
+                 data-movie-comment="<%= bookmark.comment %>"
+                 data-movie-year="<%= movie.year %>"
+                 data-movie-genre="<%= movie.genre %>"
+                 data-movie-director="<%= movie.director %>"
+                 data-movie-actors="<%= movie.actors %>"
+                 data-movie-runtime="<%= movie.runtime %>"
+                 data-movie-rt="<%= movie.rotten_tomatoes %>">
+
+              <div class="delete-movie-wrap">
+                <%= button_to bookmark_path(bookmark), method: :delete,
+                      data: { turbo_confirm: "Remove \"#{movie.title}\" from this list?" },
+                      class: "btn-delete-movie" do %>
+                  <i class="fa-solid fa-xmark"></i>
+                <% end %>
+              </div>
 
               <% if movie.poster_url.present? %>
                 <img src="<%= movie.poster_url %>" class="card-img-top"
-                     alt="<%= movie.title %> poster" style="object-fit: cover; height: 260px;">
+                     alt="<%= movie.title %> poster" style="object-fit: cover; height: 190px;">
               <% else %>
                 <div class="d-flex align-items-center justify-content-center"
-                     style="height: 260px; background-color: #1a0f08;">
+                     style="height: 190px; background-color: #1a0f08;">
                   <i class="fa-solid fa-film" style="font-size: 3rem; color: rgba(245,236,215,0.3);"></i>
                 </div>
               <% end %>
 
               <div class="card-body d-flex flex-column">
-                <h6 class="card-title mb-1"><%= movie.title %></h6>
-                <span class="badge mb-2">
-                  <i class="fa-solid fa-star"></i> <%= movie.rating.round(1) %>
-                </span>
-                <p class="card-text small flex-grow-1">
-                  <%= truncate(movie.overview, length: 80) %>
-                </p>
+                <div class="card-title-row">
+                  <h6 class="card-title mb-0"><%= movie.title %></h6>
+                  <span class="card-rating"><i class="fa-solid fa-star"></i> <%= movie.rating.round(1) %></span>
+                </div>
+                <p class="card-comment"><%= truncate(bookmark.comment, length: 55) %></p>
               </div>
 
             </div>
@@ -74,5 +100,51 @@
       </div>
     <% end %>
   </div><%# end .container %>
+
+  <%# --- Movie detail modal --- %>
+  <div data-movie-modal-target="modal"
+       class="modal fade" id="movieModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content movie-modal-content">
+
+        <button type="button" class="movie-modal-close" data-bs-dismiss="modal" aria-label="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="movie-modal-body">
+
+          <%# Col 1: poster %>
+          <img data-movie-modal-target="poster"
+               class="movie-modal-poster" src="" alt="Movie poster">
+
+          <%# Col 2: title + description %>
+          <div class="movie-modal-middle">
+            <h3 data-movie-modal-target="title" class="movie-modal-title"></h3>
+            <p data-movie-modal-target="overview" class="movie-modal-overview"></p>
+          </div>
+
+          <%# Col 3: info box %>
+          <div class="movie-modal-info-box">
+            <div class="movie-modal-pair">
+              <span data-movie-modal-target="rating"></span>
+              <span data-movie-modal-target="rt"></span>
+            </div>
+            <div class="movie-modal-pair">
+              <span data-movie-modal-target="year"></span>
+              <span data-movie-modal-target="runtime"></span>
+            </div>
+            <div class="movie-modal-box-divider"></div>
+            <p data-movie-modal-target="genre" class="movie-modal-box-row"></p>
+            <p data-movie-modal-target="director" class="movie-modal-box-row"></p>
+            <p data-movie-modal-target="actors" class="movie-modal-box-row movie-modal-actors"></p>
+          </div>
+
+          <%# Row 2, spans cols 2–3: comment %>
+          <p data-movie-modal-target="comment" class="movie-modal-comment"></p>
+
+        </div>
+      </div>
+    </div>
+  </div>
 
 </div><%# end .show-page %>

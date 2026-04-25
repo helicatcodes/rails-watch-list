@@ -19,35 +19,50 @@ curated = {
     ["The Grand Budapest Hotel", "Wes Anderson at his most delightfully absurd."],
     ["Game Night",               "Genuinely funny — way better than it has any right to be."],
     ["Knives Out",               "Sharp, witty, and endlessly entertaining."],
-    ["The Nice Guys",            "Crowe and Gosling are a hilarious odd-couple duo."]
+    ["The Nice Guys",            "Crowe and Gosling are a hilarious odd-couple duo."],
+    ["Anchorman: The Legend of Ron Burgundy", "I'm kind of a big deal. A comedy landmark."],
+    ["Step Brothers",            "Brennan and Dale are the most chaotic duo ever."],
+    ["Hot Fuzz",                 "Edgar Wright at his most brilliantly absurd."]
   ],
   "Chick Flicks" => [
-    ["Titanic",           "Epic romance — grab the tissues."],
-    ["La La Land",        "Gorgeous, bittersweet, and beautifully shot."],
-    ["Crazy Rich Asians", "Glamorous, fun, and genuinely heartwarming."],
-    ["Mamma Mia!",        "Pure feel-good joy — ABBA bangers included."],
-    ["Notting Hill",      "Classic rom-com charm at its best."]
+    ["Titanic",                    "Epic romance — grab the tissues."],
+    ["La La Land",                 "Gorgeous, bittersweet, and beautifully shot."],
+    ["Crazy Rich Asians",          "Glamorous, fun, and genuinely heartwarming."],
+    ["Mamma Mia!",                 "Pure feel-good joy — ABBA bangers included."],
+    ["Notting Hill",               "Classic rom-com charm at its best."],
+    ["The Notebook",               "The one that broke a million hearts."],
+    ["Legally Blonde",             "Elle Woods is an icon and this film proves it."],
+    ["10 Things I Hate About You", "Shakespeare never looked this fun."]
   ],
   "Comedy Classics" => [
-    ["Forrest Gump",      "Life is like a box of chocolates — timeless."],
-    ["The Princess Bride", "Inconceivable that you haven't seen this."],
-    ["Groundhog Day",     "Gets better every rewatch — fittingly enough."],
-    ["Mrs. Doubtfire",    "Robin Williams at his most lovable best."],
-    ["Home Alone",        "A comedy classic that never gets old."]
+    ["Forrest Gump",               "Life is like a box of chocolates — timeless."],
+    ["The Princess Bride",         "Inconceivable that you haven't seen this."],
+    ["Groundhog Day",              "Gets better every rewatch — fittingly enough."],
+    ["Mrs. Doubtfire",             "Robin Williams at his most lovable best."],
+    ["Home Alone",                 "A comedy classic that never gets old."],
+    ["Ferris Bueller's Day Off",   "Life moves pretty fast. Don't miss it."],
+    ["Dumb and Dumber",            "Peak slapstick. Carey and Daniels are unhinged."],
+    ["My Big Fat Greek Wedding",   "Warm, chaotic, and impossibly charming."]
   ],
   "Action Packed" => [
     ["The Dark Knight",    "The gold standard of superhero films."],
     ["Gladiator",          "Are you not entertained? Absolutely yes."],
     ["Mad Max: Fury Road", "Two hours of relentless, stunning action."],
     ["The Matrix",         "Still mind-blowing — the one that started it all."],
-    ["Top Gun: Maverick",  "Bigger, better, and faster than the original."]
+    ["Top Gun: Maverick",  "Bigger, better, and faster than the original."],
+    ["John Wick",          "Keanu Reeves at his most unstoppable."],
+    ["Die Hard",           "The definitive action film. Yes, it's a Christmas movie."],
+    ["Mission: Impossible - Fallout", "Peak Tom Cruise — the HALO jump alone is worth it."]
   ],
   "Mind-Benders" => [
     ["Inception",      "Dreams within dreams — Nolan at his best."],
     ["The Prestige",   "Every scene is a clue — watch it twice."],
     ["Shutter Island", "A masterclass in psychological tension."],
     ["Parasite",       "Unpredictable and utterly gripping."],
-    ["Interstellar",   "Ambitious, emotional, and visually stunning."]
+    ["Interstellar",   "Ambitious, emotional, and visually stunning."],
+    ["Memento",        "Told backwards — and it still makes your head spin."],
+    ["Black Swan",     "Portman at her most haunting. Unsettling in the best way."],
+    ["Ex Machina",     "Quietly terrifying. AI has never felt this real."]
   ]
 }
 
@@ -64,11 +79,18 @@ all_titles.each do |title|
   data = JSON.parse(URI.open(url).read)
 
   if data["Response"] == "True"
+    rt = (data["Ratings"] || []).find { |r| r["Source"] == "Rotten Tomatoes" }&.dig("Value")
     movie = Movie.create(
-      title:      data["Title"],
-      overview:   data["Plot"],
-      poster_url: data["Poster"] == "N/A" ? nil : data["Poster"],
-      rating:     data["imdbRating"] == "N/A" ? 0.0 : data["imdbRating"].to_f
+      title:           data["Title"],
+      overview:        data["Plot"],
+      poster_url:      data["Poster"] == "N/A" ? nil : data["Poster"],
+      rating:          data["imdbRating"] == "N/A" ? 0.0 : data["imdbRating"].to_f,
+      year:            data["Year"] == "N/A" ? nil : data["Year"],
+      genre:           data["Genre"] == "N/A" ? nil : data["Genre"],
+      director:        data["Director"] == "N/A" ? nil : data["Director"],
+      actors:          data["Actors"] == "N/A" ? nil : data["Actors"],
+      runtime:         data["Runtime"] == "N/A" ? nil : data["Runtime"],
+      rotten_tomatoes: rt
     )
     movie_map[title] = movie
     puts "  ✓ #{title}"

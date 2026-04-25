@@ -30,6 +30,10 @@ post "lists", to: "lists#create"
 get "lists/:id", to: "lists#show", as: :list
 
 post "bookmarks", to: "bookmarks#create", as: :bookmarks
+delete "bookmarks/:id", to: "bookmarks#destroy", as: :bookmark
+
+get  "movies/search", to: "movies#search"
+post "movies/select", to: "movies#select"
 end
 
 
